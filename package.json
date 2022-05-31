@@ -1,0 +1,40 @@
+{
+  "name": "notes-app-backend",
+  "version": "0.1.0",
+  "description": "",
+  "main": "./dist/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "check": "tsc --noEmit",
+    "dev": "ts-node-esm --transpileOnly ./src/server.ts | pino-pretty",
+    "dev:watch": "nodemon --exec \"ts-node-esm --transpileOnly\" ./src/server.ts | pino-pretty",
+    "start": "NODE_ENV=production node ./dist/server.js",
+    "lint": "eslint --ext .js,cjs,mjs,ts,mts,cts ./src",
+    "fmt": "prettier --write './src/**/*.{js,mjs,ts,mts,cjs}'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/hapi": "^20.2.2",
+    "hapi-pino": "^10.0.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node16-strictest-esm": "^1.0.1",
+    "@types/hapi__hapi": "^20.0.12",
+    "@types/node": "16",
+    "@typescript-eslint/eslint-plugin": "^5.27.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "eslint": "^7.32.0 || ^8.2.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.25.2",
+    "nodemon": "^2.0.16",
+    "pino-pretty": "^7.6.1",
+    "prettier": "^2.6.2",
+    "ts-node": "^10.8.0",
+    "typescript": "^4.7.2"
+  }
+}
