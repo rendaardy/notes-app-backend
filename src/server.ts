@@ -1,4 +1,4 @@
-import { exit } from 'node:process';
+import { exit, env } from 'node:process';
 import { server as createServer } from '@hapi/hapi';
 import { default as HapiPino } from 'hapi-pino';
 
@@ -6,7 +6,7 @@ import { routes } from './routes.js';
 
 const server = createServer({
   port: 5000,
-  host: 'localhost',
+  host: env['NODE_ENV'] !== 'production' ? 'localhost' : '0.0.0.0',
   debug: false,
   routes: {
     cors: {
