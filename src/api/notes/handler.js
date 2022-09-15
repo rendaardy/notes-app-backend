@@ -2,7 +2,7 @@ import { ClientError } from "../../exceptions/client-error.js";
 
 export class NotesHandler {
 	/**
-	 * @param {import("../../services/in-memory/notes-service.js").NotesService} service
+	 * @param {import("../../services/postgres/notes-service.js").NotesService} service
 	 * @param {import("../../validator/notes/index.js").NoteValidator} validator
 	 */
 	constructor(service, validator) {
@@ -21,9 +21,9 @@ export class NotesHandler {
 	 * @public
 	 * @param {import("@hapi/hapi").Request} request
 	 * @param {import("@hapi/hapi").ResponseToolkit} h
-	 * @return {import("@hapi/hapi").Lifecycle.ReturnValue}
+	 * @return {Promise<import("@hapi/hapi").Lifecycle.ReturnValue>}
 	 */
-	postNoteHandler(request, h) {
+	async postNoteHandler(request, h) {
 		try {
 			this._validator.validatePayload(request.payload);
 
@@ -32,7 +32,7 @@ export class NotesHandler {
 				body,
 				tags,
 			} = /** @type {{ title: string; body: string; tags: Array<string>}} */ (request.payload);
-			const noteId = this._service.addNote({ title, body, tags });
+			const noteId = await this._service.addNote({ title, body, tags });
 
 			const response = h.response({
 				status: "success",
@@ -69,10 +69,10 @@ export class NotesHandler {
 	 * @public
 	 * @param {import("@hapi/hapi").Request} _request
 	 * @param {import("@hapi/hapi").ResponseToolkit} _h
-	 * @return {import("@hapi/hapi").Lifecycle.ReturnValue}
+	 * @return {Promise<import("@hapi/hapi").Lifecycle.ReturnValue>}
 	 */
-	getNotesHandler(_request, _h) {
-		const notes = this._service.getNotes();
+	async getNotesHandler(_request, _h) {
+		const notes = await this._service.getNotes();
 
 		return {
 			status: "success",
@@ -86,12 +86,12 @@ export class NotesHandler {
 	 * @public
 	 * @param {import("@hapi/hapi").Request} request
 	 * @param {import("@hapi/hapi").ResponseToolkit} h
-	 * @return {import("@hapi/hapi").Lifecycle.ReturnValue}
+	 * @return {Promise<import("@hapi/hapi").Lifecycle.ReturnValue>}
 	 */
-	getNoteByIdHandler(request, h) {
+	async getNoteByIdHandler(request, h) {
 		try {
 			const { id } = request.params;
-			const note = this._service.getNoteById(id);
+			const note = await this._service.getNoteById(id);
 
 			return {
 				status: "success",
@@ -124,9 +124,9 @@ export class NotesHandler {
 	 * @public
 	 * @param {import("@hapi/hapi").Request} request
 	 * @param {import("@hapi/hapi").ResponseToolkit} h
-	 * @return {import("@hapi/hapi").Lifecycle.ReturnValue}
+	 * @return {Promise<import("@hapi/hapi").Lifecycle.ReturnValue>}
 	 */
-	putNoteByIdHandler(request, h) {
+	async putNoteByIdHandler(request, h) {
 		try {
 			const { id } = request.params;
 
@@ -135,7 +135,7 @@ export class NotesHandler {
 			const { title, body, tags } =
 				/** @type {{ title: string; body: string; tags: Array<string> }} */ (request.payload);
 
-			this._service.editNoteById(id, { title, body, tags });
+			await this._service.editNoteById(id, { title, body, tags });
 
 			return {
 				status: "success",
@@ -166,13 +166,13 @@ export class NotesHandler {
 	 * @public
 	 * @param {import("@hapi/hapi").Request} request
 	 * @param {import("@hapi/hapi").ResponseToolkit} h
-	 * @return {import("@hapi/hapi").Lifecycle.ReturnValue}
+	 * @return {Promise<import("@hapi/hapi").Lifecycle.ReturnValue>}
 	 */
-	deleteNoteByIdHandler(request, h) {
+	async deleteNoteByIdHandler(request, h) {
 		try {
 			const { id } = request.params;
 
-			this._service.deleteNoteById(id);
+			await this._service.deleteNoteById(id);
 
 			return {
 				status: "success",

@@ -3,7 +3,7 @@ import { routes } from "./routes.js";
 
 /**
  * @typedef {Object} NotesPluginOptions
- * @property {import("../../services/in-memory/notes-service.js").NotesService} service
+ * @property {import("../../services/postgres/notes-service.js").NotesService} service
  * @property {import("../../validator/notes/index.js").NoteValidator} validator
  */
 

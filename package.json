@@ -9,10 +9,10 @@
 		"start-prod": "NODE_ENV=production node ./src/server.js",
 		"start-dev": "nodemon ./src/server.js",
 		"lint": "eslint --cache --ext js,cjs,mjs,ts,cts,mts ./src",
-		"fmt": "prettier --cache --write ."
+		"fmt": "prettier --cache --write .",
+		"migrate": "node-pg-migrate"
 	},
 	"lint-staged": {
-		"*.{js,cjs,mjs,ts,cts,mts}": "pnpm fmt",
 		"*.{js,cjs,mjs,ts,cts,mts}": "pnpm lint"
 	},
 	"keywords": [],
@@ -21,6 +21,7 @@
 	"devDependencies": {
 		"@types/hapi__hapi": "^20.0.12",
 		"@types/node": "16",
+		"@types/pg": "^8.6.5",
 		"@typescript-eslint/eslint-plugin": ">=5.31.0",
 		"@typescript-eslint/parser": ">=5.31.0",
 		"eslint": ">=8.0.0",
@@ -35,7 +36,10 @@
 	},
 	"dependencies": {
 		"@hapi/hapi": "^20.1.0",
+		"dotenv": "^16.0.2",
 		"joi": "^17.6.0",
-		"nanoid": "^3.1.20"
+		"nanoid": "^3.1.20",
+		"node-pg-migrate": "^6.2.2",
+		"pg": "^8.8.0"
 	}
 }
