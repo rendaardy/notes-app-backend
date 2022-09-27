@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 
 import { InvariantError } from "../../exceptions/invariant-error.js";
 import { NotFoundError } from "../../exceptions/notfound-error.js";
+import { AuthenticationError } from "../../exceptions/authentication-error.js";
 
 const { Pool } = pkg;
 
@@ -56,6 +57,33 @@ export class UsersService {
 		if (result.rows.length > 0) {
 			throw new InvariantError("Gagal menambahkan user. Username sudah digunakan.");
 		}
+	}
+
+	/**
+	 * @param {string} username
+	 * @param {string} password
+	 * @return {Promise<string>}
+	 */
+	async verifyUserCredential(username, password) {
+		const query = {
+			text: "SELECT id, password FROM users WHERE username = $1",
+			values: [username],
+		};
+
+		const result = await this._pool.query(query);
+
+		if (!result.rows.length) {
+			throw new AuthenticationError("Kredensial yang Anda berikan salah");
+		}
+
+		const { id, password: hashedPassword } = result.rows[0];
+		const match = await bcrypt.compare(password, hashedPassword);
+
+		if (!match) {
+			throw new AuthenticationError("Kredensial yang Anda berikan salah");
+		}
+
+		return id;
 	}
 
 	/**
