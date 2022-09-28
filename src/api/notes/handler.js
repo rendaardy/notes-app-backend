@@ -32,7 +32,8 @@ export class NotesHandler {
 				body,
 				tags,
 			} = /** @type {{ title: string; body: string; tags: Array<string>}} */ (request.payload);
-			const noteId = await this._service.addNote({ title, body, tags });
+			const { id: credentialId } = /** @type {{ id: string }} */ (request.auth.credentials);
+			const noteId = await this._service.addNote({ title, body, tags, owner: credentialId });
 
 			const response = h.response({
 				status: "success",
@@ -67,12 +68,13 @@ export class NotesHandler {
 
 	/**
 	 * @public
-	 * @param {import("@hapi/hapi").Request} _request
+	 * @param {import("@hapi/hapi").Request} request
 	 * @param {import("@hapi/hapi").ResponseToolkit} _h
 	 * @return {Promise<import("@hapi/hapi").Lifecycle.ReturnValue>}
 	 */
-	async getNotesHandler(_request, _h) {
-		const notes = await this._service.getNotes();
+	async getNotesHandler(request, _h) {
+		const { id: credentialId } = /** @type {{ id: string }} */ (request.auth.credentials);
+		const notes = await this._service.getNotes(credentialId);
 
 		return {
 			status: "success",
@@ -91,6 +93,10 @@ export class NotesHandler {
 	async getNoteByIdHandler(request, h) {
 		try {
 			const { id } = request.params;
+			const { id: credentialId } = /** @type {{ id: string }} */ (request.auth.credentials);
+
+			await this._service.verifyNoteOwner(id, credentialId);
+
 			const note = await this._service.getNoteById(id);
 
 			return {
@@ -129,8 +135,11 @@ export class NotesHandler {
 	async putNoteByIdHandler(request, h) {
 		try {
 			const { id } = request.params;
+			const { id: credentialId } = /** @type {{ id: string }} */ (request.auth.credentials);
 
 			this._validator.validatePayload(request.payload);
+
+			await this._service.verifyNoteOwner(id, credentialId);
 
 			const { title, body, tags } =
 				/** @type {{ title: string; body: string; tags: Array<string> }} */ (request.payload);
@@ -171,7 +180,9 @@ export class NotesHandler {
 	async deleteNoteByIdHandler(request, h) {
 		try {
 			const { id } = request.params;
+			const { id: credentialId } = /** @type {{ id: string }} */ (request.auth.credentials);
 
+			await this._service.verifyNoteOwner(id, credentialId);
 			await this._service.deleteNoteById(id);
 
 			return {
