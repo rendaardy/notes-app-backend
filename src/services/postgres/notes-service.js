@@ -14,6 +14,7 @@ import { AuthorizationError } from "../../exceptions/authorization-error.js";
  * @property {string} createdAt
  * @property {string} updatedAt
  * @property {string} owner
+ * @property {string} username
  */
 
 /**
@@ -34,15 +35,24 @@ function mapDBToNote(data) {
 		tags: data.tags,
 		createdAt: data.created_at,
 		updatedAt: data.updated_at,
+		username: data.username,
 	};
 }
 
 export class NotesService {
-	constructor() {
+	/**
+	 * @param {import("./collaborations-service.js").CollaborationsService} collaborationsService
+	 */
+	constructor(collaborationsService) {
 		/**
 		 * @private
 		 */
 		this._pool = new Pool();
+
+		/**
+		 * @private
+		 */
+		this._collaborationsService = collaborationsService;
 	}
 
 	/**
@@ -76,7 +86,12 @@ export class NotesService {
 	 */
 	async getNotes(owner) {
 		const result = await this._pool.query({
-			text: "SELECT * FROM notes WHERE owner = $1",
+			text: `
+        SELECT notes.* FROM notes
+        LEFT JOIN collaborations ON collaborations.note_id = notes.id
+        WHERE notes.owner = $1 OR collaborations.user_id = $1
+        GROUP BY notes.id
+      `,
 			values: [owner],
 		});
 
@@ -90,7 +105,11 @@ export class NotesService {
 	 */
 	async getNoteById(id) {
 		const result = await this._pool.query({
-			text: "SELECT * FROM notes WHERE id = $1",
+			text: `
+        SELECT notes.*, users.username FROM notes
+        LEFT JOIN users ON users.id = notes.owner
+        WHERE notes.id = $1
+      `,
 			values: [id],
 		});
 
@@ -162,6 +181,27 @@ export class NotesService {
 
 		if (note.owner !== owner) {
 			throw new AuthorizationError("Anda tidak berhak mengakses resource ini");
+		}
+	}
+
+	/**
+	 * @param {string} noteId
+	 * @param {string} userId
+	 */
+	async verifyNoteAccess(noteId, userId) {
+		try {
+			await this.verifyNoteOwner(noteId, userId);
+		} catch (error) {
+			if (error instanceof NotFoundError) {
+				throw error;
+			}
+
+			// eslint-disable-next-line no-useless-catch
+			try {
+				await this._collaborationsService.verifyCollaborator(noteId, userId);
+			} catch (error) {
+				throw error;
+			}
 		}
 	}
 }

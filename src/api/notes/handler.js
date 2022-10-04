@@ -95,7 +95,7 @@ export class NotesHandler {
 			const { id } = request.params;
 			const { id: credentialId } = /** @type {{ id: string }} */ (request.auth.credentials);
 
-			await this._service.verifyNoteOwner(id, credentialId);
+			await this._service.verifyNoteAccess(id, credentialId);
 
 			const note = await this._service.getNoteById(id);
 
@@ -139,7 +139,7 @@ export class NotesHandler {
 
 			this._validator.validatePayload(request.payload);
 
-			await this._service.verifyNoteOwner(id, credentialId);
+			await this._service.verifyNoteAccess(id, credentialId);
 
 			const { title, body, tags } =
 				/** @type {{ title: string; body: string; tags: Array<string> }} */ (request.payload);

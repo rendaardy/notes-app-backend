@@ -2,6 +2,7 @@ import process from "node:process";
 import { default as Hapi } from "@hapi/hapi";
 import Jwt from "@hapi/jwt";
 import * as dotenv from "dotenv";
+import pinoPlugin from "hapi-pino";
 
 import { notesPlugin } from "./api/notes/index.js";
 import { NotesService } from "./services/postgres/notes-service.js";
@@ -9,6 +10,9 @@ import { NoteValidator } from "./validator/notes/index.js";
 import { usersPlugin } from "./api/users/index.js";
 import { UsersService } from "./services/postgres/users-service.js";
 import { UsersValidator } from "./validator/users/index.js";
+import { collaborationsPlugin } from "./api/collaborations/index.js";
+import { CollaborationsService } from "./services/postgres/collaborations-service.js";
+import { CollaborationsValidator } from "./validator/collaborations/index.js";
 import { authenticationsPlugin } from "./api/authentications/index.js";
 import { AuthenticationsService } from "./services/postgres/authentications-service.js";
 import { AuthenticationsValidator } from "./validator/authentications/index.js";
@@ -25,11 +29,19 @@ const init = async () => {
 				origin: ["*"],
 			},
 		},
+		debug: false,
 	});
-	const notesService = new NotesService();
+	const collaborationsService = new CollaborationsService();
+	const notesService = new NotesService(collaborationsService);
 	const usersService = new UsersService();
 	const authenticationsService = new AuthenticationsService();
 
+	await server.register({
+		plugin: pinoPlugin,
+		options: {
+			redact: ["req.headers.authorization"],
+		},
+	});
 	await server.register([Jwt]);
 
 	server.auth.strategy("notesapp_jwt", "jwt", {
@@ -75,6 +87,14 @@ const init = async () => {
 				usersService,
 				tokenManager: TokenManager,
 				validator: AuthenticationsValidator,
+			},
+		},
+		{
+			plugin: collaborationsPlugin,
+			options: {
+				collaborationsService,
+				notesService,
+				validator: CollaborationsValidator,
 			},
 		},
 	]);
