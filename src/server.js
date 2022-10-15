@@ -17,6 +17,9 @@ import { authenticationsPlugin } from "./api/authentications/index.js";
 import { AuthenticationsService } from "./services/postgres/authentications-service.js";
 import { AuthenticationsValidator } from "./validator/authentications/index.js";
 import { TokenManager } from "./tokenize/token-manager.js";
+import { exportsPlugin } from "./api/exports/index.js";
+import { ProducerService } from "./services/rabbitmq/producer-service.js";
+import { ExportsValidator } from "./validator/exports/index.js";
 
 dotenv.config();
 
@@ -95,6 +98,13 @@ const init = async () => {
 				collaborationsService,
 				notesService,
 				validator: CollaborationsValidator,
+			},
+		},
+		{
+			plugin: exportsPlugin,
+			options: {
+				service: ProducerService,
+				validator: ExportsValidator,
 			},
 		},
 	]);
