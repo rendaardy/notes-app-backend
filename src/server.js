@@ -1,6 +1,8 @@
 import process from "node:process";
+import path from "node:path";
 import { default as Hapi } from "@hapi/hapi";
 import Jwt from "@hapi/jwt";
+import Inert from "@hapi/inert";
 import * as dotenv from "dotenv";
 import pinoPlugin from "hapi-pino";
 
@@ -20,6 +22,9 @@ import { TokenManager } from "./tokenize/token-manager.js";
 import { exportsPlugin } from "./api/exports/index.js";
 import { ProducerService } from "./services/rabbitmq/producer-service.js";
 import { ExportsValidator } from "./validator/exports/index.js";
+import { uploadsPlugin } from "./api/uploads/index.js";
+import { StorageService } from "./services/storage/storage-service.js";
+import { UploadsValidator } from "./validator/uploads/index.js";
 
 dotenv.config();
 
@@ -38,6 +43,9 @@ const init = async () => {
 	const notesService = new NotesService(collaborationsService);
 	const usersService = new UsersService();
 	const authenticationsService = new AuthenticationsService();
+	const storageService = new StorageService(
+		path.resolve(process.cwd(), "src", "api", "uploads", "file", "images"),
+	);
 
 	await server.register({
 		plugin: pinoPlugin,
@@ -45,7 +53,7 @@ const init = async () => {
 			redact: ["req.headers.authorization"],
 		},
 	});
-	await server.register([Jwt]);
+	await server.register([Jwt.plugin, Inert]);
 
 	server.auth.strategy("notesapp_jwt", "jwt", {
 		keys: process.env.ACCESS_TOKEN_KEY,
@@ -105,6 +113,13 @@ const init = async () => {
 			options: {
 				service: ProducerService,
 				validator: ExportsValidator,
+			},
+		},
+		{
+			plugin: uploadsPlugin,
+			options: {
+				service: storageService,
+				validator: UploadsValidator,
 			},
 		},
 	]);
