@@ -7,12 +7,20 @@ import { AuthorizationError } from "../../exceptions/authorization-error.js";
 const { Pool } = pg;
 
 export class CollaborationsService {
-	constructor() {
+	/**
+	 * @param {import("../redis/cache-service.js").CacheService} cacheService
+	 */
+	constructor(cacheService) {
 		/**
 		 * @private
 		 * @readonly
 		 */
 		this._pool = new Pool();
+
+		/**
+		 * @private
+		 */
+		this._cacheService = cacheService;
 	}
 
 	/**
@@ -32,6 +40,8 @@ export class CollaborationsService {
 			throw new InvariantError("Kolaborasi gagal ditambahkan");
 		}
 
+		await this._cacheService.delete(`notes:${userId}`);
+
 		return result.rows[0].id;
 	}
 
@@ -49,6 +59,8 @@ export class CollaborationsService {
 		if (!result.rows.length) {
 			throw new InvariantError("Kolaborasi gagal dihapus");
 		}
+
+		await this._cacheService.delete(`notes:${userId}`);
 	}
 
 	/**

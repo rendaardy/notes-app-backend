@@ -24,6 +24,7 @@ import { ExportsValidator } from "./validator/exports/index.js";
 import { uploadsPlugin } from "./api/uploads/index.js";
 import { StorageService } from "./services/s3/storage-service.js";
 import { UploadsValidator } from "./validator/uploads/index.js";
+import { CacheService } from "./services/redis/cache-service.js";
 
 dotenv.config();
 
@@ -38,8 +39,9 @@ const init = async () => {
 		},
 		debug: false,
 	});
-	const collaborationsService = new CollaborationsService();
-	const notesService = new NotesService(collaborationsService);
+	const cacheService = new CacheService();
+	const collaborationsService = new CollaborationsService(cacheService);
+	const notesService = new NotesService(collaborationsService, cacheService);
 	const usersService = new UsersService();
 	const authenticationsService = new AuthenticationsService();
 	const storageService = new StorageService();
