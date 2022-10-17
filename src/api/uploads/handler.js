@@ -1,5 +1,3 @@
-import process from "node:process";
-
 import { ClientError } from "../../exceptions/client-error.js";
 
 export class UploadsHandler {
@@ -27,12 +25,12 @@ export class UploadsHandler {
 			this._validator.validateHeaders(data?.hapi?.headers);
 
 			// @ts-ignore
-			const filename = await this._service.writeFile(data, data?.hapi);
+			const fileLocation = await this._service.writeFile(data, data?.hapi);
 
 			const response = h.response({
 				status: "success",
 				data: {
-					fileLocation: `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`,
+					fileLocation,
 				},
 			});
 			response.code(201);
