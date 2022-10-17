@@ -22,8 +22,8 @@ export class StorageService {
 			file.on("error", (error) => reject(error));
 
 			file.on("data", (chunk) => {
-        data = Buffer.concat([data, chunk]);
-      });
+				data = Buffer.concat([data, chunk]);
+			});
 
 			file.on("end", () => resolve(data));
 		});
